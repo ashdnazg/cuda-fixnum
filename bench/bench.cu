@@ -13,6 +13,16 @@ using namespace std;
 using namespace cuFIXNUM;
 
 template< typename fixnum >
+struct add {
+    __device__ void operator()(fixnum &r, fixnum a) {
+        fixnum s;
+        fixnum::add(s, a, a);
+        r = s;
+    }
+};
+
+
+template< typename fixnum >
 struct mul_lo {
     __device__ void operator()(fixnum &r, fixnum a) {
         fixnum s;
@@ -139,21 +149,23 @@ int main(int argc, char *argv[]) {
         m = atol(argv[1]);
     m = std::max(m, 1000L);
 
-    bench_func<mul_lo>("mul_lo", m);
+    bench_func<mul_lo>("add", m);
     puts("");
-    bench_func<mul_wide>("mul_wide", m);
-    puts("");
-    bench_func<sqr_wide>("sqr_wide", m);
-    puts("");
-    bench_func<modexp_redc>("modexp redc", m / 100);
-    puts("");
-    bench_func<modexp_cios>("modexp cios", m / 100);
-    puts("");
+    // bench_func<mul_lo>("mul_lo", m);
+    // puts("");
+    // bench_func<mul_wide>("mul_wide", m);
+    // puts("");
+    // bench_func<sqr_wide>("sqr_wide", m);
+    // puts("");
+    // bench_func<modexp_redc>("modexp redc", m / 100);
+    // puts("");
+    // bench_func<modexp_cios>("modexp cios", m / 100);
+    // puts("");
 
-    bench_func<modexp_redc>("multi modexp redc", m / 100);
-    puts("");
-    bench_func<modexp_cios>("multi modexp cios", m / 100);
-    puts("");
+    // bench_func<modexp_redc>("multi modexp redc", m / 100);
+    // puts("");
+    // bench_func<modexp_cios>("multi modexp cios", m / 100);
+    // puts("");
 
     return 0;
 }
