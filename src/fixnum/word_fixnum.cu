@@ -66,6 +66,12 @@ public:
         s = a + b;
     }
 
+    __device__ __forceinline__
+    static void
+    bitwise_and(fixnum &s, fixnum a, fixnum b) {
+        s = a & b;
+    }
+
     // TODO: this function does not follow the convention of later '*_cy'
     // functions of accumulating the carry into cy.
     __device__ __forceinline__
