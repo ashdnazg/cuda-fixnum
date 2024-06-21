@@ -14,36 +14,36 @@ using namespace cuFIXNUM;
 
 template< typename fixnum >
 struct add {
-    __device__ void operator()(fixnum &r, fixnum a) {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         fixnum s;
-        fixnum::add(s, a, a);
+        fixnum::add(s, a, b);
         r = s;
     }
 };
 
 template< typename fixnum >
 struct bitwise_and {
-    __device__ void operator()(fixnum &r, fixnum a) {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         fixnum s;
-        fixnum::bitwise_and(s, a, a);
+        fixnum::bitwise_and(s, a, b);
         r = s;
     }
 };
 
 template< typename fixnum >
 struct bitwise_xor {
-    __device__ void operator()(fixnum &r, fixnum a) {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         fixnum s;
-        fixnum::bitwise_xor(s, a, a);
+        fixnum::bitwise_xor(s, a, b);
         r = s;
     }
 };
 
 template< typename fixnum >
 struct bitwise_or {
-    __device__ void operator()(fixnum &r, fixnum a) {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         fixnum s;
-        fixnum::bitwise_or(s, a, a);
+        fixnum::bitwise_or(s, a, b);
         r = s;
     }
 };
@@ -52,7 +52,7 @@ struct bitwise_or {
 
 template< typename fixnum >
 struct reverse_bits {
-    __device__ void operator()(fixnum &r, fixnum a) {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         fixnum s;
         fixnum::reverse_bits(s, a);
         r = s;
@@ -61,25 +61,25 @@ struct reverse_bits {
 
 template< typename fixnum >
 struct mul_lo {
-    __device__ void operator()(fixnum &r, fixnum a) {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         fixnum s;
-        fixnum::mul_lo(s, a, a);
+        fixnum::mul_lo(s, a, b);
         r = s;
     }
 };
 
 template< typename fixnum >
 struct mul_wide {
-    __device__ void operator()(fixnum &r, fixnum a) {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         fixnum rr, ss;
-        fixnum::mul_wide(ss, rr, a, a);
+        fixnum::mul_wide(ss, rr, a, b);
         r = ss;
     }
 };
 
 template< typename fixnum >
 struct sqr_wide {
-    __device__ void operator()(fixnum &r, fixnum a) {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         fixnum rr, ss;
         fixnum::sqr_wide(ss, rr, a);
         r = ss;
@@ -90,7 +90,7 @@ template< typename modnum >
 struct my_modexp {
     typedef typename modnum::fixnum fixnum;
 
-    __device__ void operator()(fixnum &z, fixnum x) {
+    __device__ void operator()(fixnum &z, fixnum x, fixnum y) {
         modexp<modnum> me(x, x);
         fixnum zz;
         me(zz, x);
@@ -102,7 +102,7 @@ template< typename modnum >
 struct my_multi_modexp {
     typedef typename modnum::fixnum fixnum;
 
-    __device__ void operator()(fixnum &z, fixnum x) {
+    __device__ void operator()(fixnum &z, fixnum x, fixnum y) {
         multi_modexp<modnum> mme(x);
         fixnum zz;
         mme(zz, x, x);
@@ -120,19 +120,24 @@ void bench(int nelts) {
         return;
     }
 
-    uint8_t *input = new uint8_t[fn_bytes * nelts];
+    uint8_t *input1 = new uint8_t[fn_bytes * nelts];
     for (int i = 0; i < fn_bytes * nelts; ++i)
-        input[i] = (i * 17 + 11) % 256;
+        input1[i] = (i * 17 + 11) % 256;
 
-    fixnum_array *res, *in;
-    in = fixnum_array::create(input, fn_bytes * nelts, fn_bytes);
+    uint8_t *input2 = new uint8_t[fn_bytes * nelts];
+    for (int i = 0; i < fn_bytes * nelts; ++i)
+        input2[i] = ((i + 13) * 17 + 11) % 256;
+
+    fixnum_array *res, *in_a, *in_b;
+    in_a = fixnum_array::create(input1, fn_bytes * nelts, fn_bytes);
+    in_b = fixnum_array::create(input2, fn_bytes * nelts, fn_bytes);
     res = fixnum_array::create(nelts);
 
     // warm up
-    fixnum_array::template map<Func>(res, in);
+    fixnum_array::template map<Func>(res, in_a, in_b);
 
     clock_t c = clock();
-    fixnum_array::template map<Func>(res, in);
+    fixnum_array::template map<Func>(res, in_a, in_b);
     c = clock() - c;
 
     double secinv = (double)CLOCKS_PER_SEC / c;
@@ -141,9 +146,11 @@ void bench(int nelts) {
            fixnum::BITS, fixnum::digit::BITS, total_MiB,
            1/secinv, nelts * 1e-3 * secinv);
 
-    delete in;
+    delete in_a;
+    delete in_b;
     delete res;
-    delete[] input;
+    delete[] input1;
+    delete[] input2;
 }
 
 template< template <typename> class Func >
