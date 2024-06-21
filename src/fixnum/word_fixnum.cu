@@ -74,6 +74,18 @@ public:
 
     __device__ __forceinline__
     static void
+    bitwise_xor(fixnum &s, fixnum a, fixnum b) {
+        s = a ^ b;
+    }
+
+    __device__ __forceinline__
+    static void
+    bitwise_or(fixnum &s, fixnum a, fixnum b) {
+        s = a | b;
+    }
+
+    __device__ __forceinline__
+    static void
     reverse_bits(fixnum &r, fixnum a) {
         internal::brev(r, a);
     }

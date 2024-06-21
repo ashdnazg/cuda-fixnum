@@ -31,6 +31,26 @@ struct bitwise_and {
 };
 
 template< typename fixnum >
+struct bitwise_xor {
+    __device__ void operator()(fixnum &r, fixnum a) {
+        fixnum s;
+        fixnum::bitwise_xor(s, a, a);
+        r = s;
+    }
+};
+
+template< typename fixnum >
+struct bitwise_or {
+    __device__ void operator()(fixnum &r, fixnum a) {
+        fixnum s;
+        fixnum::bitwise_or(s, a, a);
+        r = s;
+    }
+};
+
+
+
+template< typename fixnum >
 struct reverse_bits {
     __device__ void operator()(fixnum &r, fixnum a) {
         fixnum s;
@@ -170,6 +190,12 @@ int main(int argc, char *argv[]) {
     puts("");
 
     bench_func<bitwise_and>("bitwise_and", m);
+    puts("");
+
+    bench_func<bitwise_xor>("bitwise_xor", m);
+    puts("");
+
+    bench_func<bitwise_or>("bitwise_or", m);
     puts("");
 
     bench_func<reverse_bits>("reverse_bits", m);

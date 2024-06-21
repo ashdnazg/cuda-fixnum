@@ -145,8 +145,16 @@ public:
         add_cy(r, cy, a, b);
     }
 
-    __device__ static void bitwise_and(fixnum &s, fixnum a, fixnum b) {
-        digit::bitwise_and(s, a, b);
+    __device__ static void bitwise_and(fixnum &r, fixnum a, fixnum b) {
+        digit::bitwise_and(r, a, b);
+    }
+
+    __device__ static void bitwise_xor(fixnum &r, fixnum a, fixnum b) {
+        digit::bitwise_xor(r, a, b);
+    }
+
+    __device__ static void bitwise_or(fixnum &r, fixnum a, fixnum b) {
+        digit::bitwise_or(r, a, b);
     }
 
     __device__ static void reverse_bits(fixnum &r, fixnum a) {
