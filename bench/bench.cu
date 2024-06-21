@@ -21,6 +21,16 @@ struct add {
     }
 };
 
+
+template< typename fixnum >
+struct add2 {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
+        fixnum s;
+        fixnum::add2(s, a, b);
+        r = s;
+    }
+};
+
 template< typename fixnum >
 struct bitwise_and {
     __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
@@ -211,8 +221,11 @@ int main(int argc, char *argv[]) {
         m = atol(argv[1]);
     m = std::max(m, 1000L);
 
-    // bench_func<add>("add", m);
-    // puts("");
+    bench_func<add>("add", m);
+    puts("");
+
+    bench_func<add2>("add2", m);
+    puts("");
 
     // bench_func<bitwise_and>("bitwise_and", m);
     // puts("");
@@ -226,11 +239,11 @@ int main(int argc, char *argv[]) {
     // bench_func<reverse_bits>("reverse_bits", m);
     // puts("");
 
-    bench_func<sqr_lo1>("sqr_lo1", m);
-    puts("");
+    // bench_func<sqr_lo1>("sqr_lo1", m);
+    // puts("");
 
-    bench_func<sqr_lo2>("sqr_lo2", m);
-    puts("");
+    // bench_func<sqr_lo2>("sqr_lo2", m);
+    // puts("");
 
 
     // bench_func<mul_lo>("mul_lo", m);

@@ -145,6 +145,16 @@ public:
         add_cy(r, cy, a, b);
     }
 
+    __device__ static void add2(fixnum &r, fixnum a, fixnum b) {
+        int L = layout::laneIdx();
+        for (int i = 0; i < WARPSIZE; ++i) {
+            fixnum ai = layout::shfl(a, i);
+            fixnum bi = layout::shfl(b, i);
+            addc(ai, ai, bi);
+            r = i == L ? ai : r;
+        }
+    }
+
     __device__ static void bitwise_and(fixnum &r, fixnum a, fixnum b) {
         digit::bitwise_and(r, a, b);
     }
