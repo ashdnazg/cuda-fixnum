@@ -58,6 +58,18 @@ namespace internal {
              : "l"(a), "l" (b));
     }
 
+    __device__ __forceinline__
+    void
+    brev(u32 &r, u32 a) {
+        r = __brev(a);
+    }
+
+    __device__ __forceinline__
+    void
+    brev(u64 &r, u64 a) {
+        r = __brevll(a);
+    }
+
     /*
      * hi * 2^n + lo = a * b
      */

@@ -22,13 +22,6 @@ struct add {
 };
 
 template< typename fixnum >
-struct add2 {
-    __device__ void operator()(fixnum &r, fixnum a) {
-        fixnum::add(r, a, a);
-    }
-};
-
-template< typename fixnum >
 struct bitwise_and {
     __device__ void operator()(fixnum &r, fixnum a) {
         fixnum s;
@@ -37,7 +30,14 @@ struct bitwise_and {
     }
 };
 
-
+template< typename fixnum >
+struct reverse_bits {
+    __device__ void operator()(fixnum &r, fixnum a) {
+        fixnum s;
+        fixnum::reverse_bits(s, a);
+        r = s;
+    }
+};
 
 template< typename fixnum >
 struct mul_lo {
@@ -169,11 +169,12 @@ int main(int argc, char *argv[]) {
     bench_func<add>("add", m);
     puts("");
 
-    bench_func<add2>("add2", m);
+    bench_func<bitwise_and>("bitwise_and", m);
     puts("");
 
-    // bench_func<bitwise_and>("bitwise_and", m);
-    // puts("");
+    bench_func<reverse_bits>("reverse_bits", m);
+    puts("");
+
     // bench_func<mul_lo>("mul_lo", m);
     // puts("");
     // bench_func<mul_wide>("mul_wide", m);

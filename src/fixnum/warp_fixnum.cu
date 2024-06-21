@@ -145,11 +145,15 @@ public:
         add_cy(r, cy, a, b);
     }
 
-    __device__
-    static void
-    bitwise_and(fixnum &s, fixnum a, fixnum b) {
+    __device__ static void bitwise_and(fixnum &s, fixnum a, fixnum b) {
         digit::bitwise_and(s, a, b);
     }
+
+    __device__ static void reverse_bits(fixnum &r, fixnum a) {
+        digit::reverse_bits(r, a);
+        r = layout::shfl(r, WARPSIZE - layout::laneIdx() - 1);
+    }
+
 
     // TODO: Handle borrow in
     __device__ static void sub_br(fixnum &r, digit &br_hi, fixnum a, fixnum b) {

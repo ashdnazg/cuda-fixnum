@@ -72,6 +72,12 @@ public:
         s = a & b;
     }
 
+    __device__ __forceinline__
+    static void
+    reverse_bits(fixnum &r, fixnum a) {
+        internal::brev(r, a);
+    }
+
     // TODO: this function does not follow the convention of later '*_cy'
     // functions of accumulating the carry into cy.
     __device__ __forceinline__
