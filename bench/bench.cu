@@ -86,6 +86,24 @@ struct sqr_wide {
     }
 };
 
+template< typename fixnum >
+struct sqr_lo1 {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
+        fixnum s;
+        fixnum::mul_lo(s, a, a);
+        r = s;
+    }
+};
+
+template< typename fixnum >
+struct sqr_lo2 {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
+        fixnum s;
+        fixnum::sqr_lo(s, a);
+        r = s;
+    }
+};
+
 template< typename modnum >
 struct my_modexp {
     typedef typename modnum::fixnum fixnum;
@@ -158,20 +176,20 @@ void bench_func(const char *fn_name, int nelts) {
     printf("Function: %s, #elts: %de3\n", fn_name, (int)(nelts * 1e-3));
     printf("fixnum digit  total data   time       Kops/s\n");
     printf(" bits  bits     (MiB)    (seconds)\n");
-    bench<4, u32_fixnum, Func>(nelts);
+    // bench<4, u32_fixnum, Func>(nelts);
     bench<8, u32_fixnum, Func>(nelts);
     bench<16, u32_fixnum, Func>(nelts);
     bench<32, u32_fixnum, Func>(nelts);
     bench<64, u32_fixnum, Func>(nelts);
-    bench<128, u32_fixnum, Func>(nelts);
+    // bench<128, u32_fixnum, Func>(nelts);
     puts("");
 
     bench<8, u64_fixnum, Func>(nelts);
     bench<16, u64_fixnum, Func>(nelts);
     bench<32, u64_fixnum, Func>(nelts);
     bench<64, u64_fixnum, Func>(nelts);
-    bench<128, u64_fixnum, Func>(nelts);
-    bench<256, u64_fixnum, Func>(nelts);
+    // bench<128, u64_fixnum, Func>(nelts);
+    // bench<256, u64_fixnum, Func>(nelts);
     puts("");
 }
 
@@ -193,20 +211,27 @@ int main(int argc, char *argv[]) {
         m = atol(argv[1]);
     m = std::max(m, 1000L);
 
-    bench_func<add>("add", m);
+    // bench_func<add>("add", m);
+    // puts("");
+
+    // bench_func<bitwise_and>("bitwise_and", m);
+    // puts("");
+
+    // bench_func<bitwise_xor>("bitwise_xor", m);
+    // puts("");
+
+    // bench_func<bitwise_or>("bitwise_or", m);
+    // puts("");
+
+    // bench_func<reverse_bits>("reverse_bits", m);
+    // puts("");
+
+    bench_func<sqr_lo1>("sqr_lo1", m);
     puts("");
 
-    bench_func<bitwise_and>("bitwise_and", m);
+    bench_func<sqr_lo2>("sqr_lo2", m);
     puts("");
 
-    bench_func<bitwise_xor>("bitwise_xor", m);
-    puts("");
-
-    bench_func<bitwise_or>("bitwise_or", m);
-    puts("");
-
-    bench_func<reverse_bits>("reverse_bits", m);
-    puts("");
 
     // bench_func<mul_lo>("mul_lo", m);
     // puts("");
