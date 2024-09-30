@@ -147,10 +147,23 @@ public:
 
     __device__ static void add2(fixnum &r, fixnum a, fixnum b) {
         int L = layout::laneIdx();
-        for (int i = 0; i < WARPSIZE; ++i) {
+
+        for (int i = 0; i < layout::WIDTH; ++i) {
             fixnum ai = layout::shfl(a, i);
             fixnum bi = layout::shfl(b, i);
-            addc(ai, ai, bi);
+
+            bool needs_carry_in = i != 0;
+            bool needs_carry_out = i + 1 < layout::WIDTH;
+
+            if (needs_carry_in && needs_carry_out) {
+                digit::addc_cc(ai, ai, bi);
+            } else if (needs_carry_in) {
+                digit::addc(ai, ai, bi);
+            } else if (needs_carry_out) {
+                digit::add_cc(ai, ai, bi);
+            } else {
+                digit::add(ai, ai, bi);
+            }
             r = i == L ? ai : r;
         }
     }
@@ -169,7 +182,7 @@ public:
 
     __device__ static void reverse_bits(fixnum &r, fixnum a) {
         digit::reverse_bits(r, a);
-        r = layout::shfl(r, WARPSIZE - layout::laneIdx() - 1);
+        r = layout::shfl(r, layout::WIDTH - layout::laneIdx() - 1);
     }
 
 
