@@ -191,6 +191,64 @@ TYPED_TEST(TypedPrimitives, add_cy) {
 }
 
 
+
+template< typename fixnum >
+struct add2 {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
+        typedef typename fixnum::digit digit;
+        fixnum::add2(r, a, b);
+    }
+};
+
+TYPED_TEST(TypedPrimitives, add2) {
+    typedef typename TestFixture::fixnum fixnum;
+    typedef fixnum_array<fixnum> fixnum_array;
+
+    fixnum_array *res, *xs;
+    vector<byte_array> tcases;
+
+    read_tcases(tcases, xs, "tests/add2", 2);
+    int vec_len = xs->length();
+    res = fixnum_array::create(vec_len);
+
+    auto tcase = tcases.begin();
+    for (int i = 0; i < vec_len; ++i) {
+        fixnum_array *ys = xs->rotate(i);
+        fixnum_array::template map<add2>(res, xs, ys);
+        check_result(tcase, vec_len, {res});
+        delete ys;
+    }
+    delete res;
+    delete xs;
+}
+
+template< typename fixnum >
+struct reverse_bits {
+    __device__ void operator()(fixnum &r, fixnum a) {
+        typedef typename fixnum::digit digit;
+        fixnum::reverse_bits(r, a);
+    }
+};
+
+TYPED_TEST(TypedPrimitives, reverse) {
+    typedef typename TestFixture::fixnum fixnum;
+    typedef fixnum_array<fixnum> fixnum_array;
+
+    fixnum_array *res, *xs;
+    vector<byte_array> tcases;
+
+    read_tcases(tcases, xs, "tests/reverse", 1);
+    int vec_len = xs->length();
+    res = fixnum_array::create(vec_len);
+
+    fixnum_array::template map<reverse_bits>(res, xs);
+    auto tcase = tcases.begin();
+    check_result(tcase, vec_len, {res});
+    delete res;
+    delete xs;
+}
+
+
 template< typename fixnum >
 struct sub_br {
     __device__ void operator()(fixnum &r, fixnum &br, fixnum a, fixnum b) {

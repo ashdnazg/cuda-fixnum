@@ -65,6 +65,12 @@ def write_tests(fname, arg):
 def add_cy(x, y, bits):
     return [(x + y) & ((1<<bits) - 1), (x + y) >> bits]
 
+def add2(x, y, bits):
+    return [(x + y) & ((1<<bits) - 1)]
+
+def reverse(x, bits):
+    return [int(bin(x)[2:].zfill(bits)[::-1], 2)]
+
 def sub_br(x, y, bits):
     return [(x - y) & ((1<<bits) - 1), int(x < y)]
 
@@ -140,6 +146,8 @@ def generate_tests(nbytes, tests):
 
     ops = {
         'add_cy': (add_cy, xs, 2, 2, bits),
+        'add2': (add2, xs, 2, 1, bits),
+        'reverse': (reverse, xs, 1, 1, bits),
         'sub_br': (sub_br, xs, 2, 2, bits),
         'mul_wide': (mul_wide, xs, 2, 2, bits),
         'sqr_wide': (sqr_wide, xs, 1, 2, bits),
