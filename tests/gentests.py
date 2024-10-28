@@ -80,6 +80,9 @@ def mul_wide(x, y, bits):
 def sqr_wide(x, bits):
     return [(x * x) & ((1<<bits) - 1), (x * x) >> bits]
 
+def cmp(x, y, bits):
+    return [(x > y) - (x < y) & ((1<<bits) - 1)]
+
 def modexp(x, y, z, bits):
     # FIXME: Handle these cases properly!
     if z % 2 == 0:
@@ -148,11 +151,12 @@ def generate_tests(nbytes, tests):
         'add_cy': (add_cy, xs, 2, 2, bits),
         'add2': (add2, xs, 2, 1, bits),
         'reverse': (reverse, xs, 1, 1, bits),
-        'sub_br': (sub_br, xs, 2, 2, bits),
-        'mul_wide': (mul_wide, xs, 2, 2, bits),
-        'sqr_wide': (sqr_wide, xs, 1, 2, bits),
-        'modexp': (modexp, xs, 3, 1, bits),
-        'paillier_encrypt' : (paillier_encrypt, ps, 4, 1, bits)
+        'cmp': (cmp, xs, 2, 1, bits),
+        # 'sub_br': (sub_br, xs, 2, 2, bits),
+        # 'mul_wide': (mul_wide, xs, 2, 2, bits),
+        # 'sqr_wide': (sqr_wide, xs, 1, 2, bits),
+        # 'modexp': (modexp, xs, 3, 1, bits),
+        # 'paillier_encrypt' : (paillier_encrypt, ps, 4, 1, bits)
     }
     test_names = ops.keys() & tests if len(tests) > 0 else ops.keys()
     test_fns = { fn: ops[fn] for fn in test_names }

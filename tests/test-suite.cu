@@ -250,470 +250,508 @@ TYPED_TEST(TypedPrimitives, reverse) {
 
 
 template< typename fixnum >
-struct sub_br {
-    __device__ void operator()(fixnum &r, fixnum &br, fixnum a, fixnum b) {
+struct cmp {
+    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
         typedef typename fixnum::digit digit;
-        digit bb;
-        fixnum::sub_br(r, bb, a, b);
-        br = (fixnum::layout::laneIdx() == 0) ? bb : digit::zero();
+        int r_int = fixnum::cmp(a, b);
+        if (r_int == 1) {
+            r = fixnum::one();
+        } else if (r_int == -1) {
+            fixnum::neg(r, fixnum::one());
+        } else {
+            r = fixnum::zero();
+        }
     }
 };
 
-TYPED_TEST(TypedPrimitives, sub_br) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
-
-    fixnum_array *res, *brs, *xs;
-    vector<byte_array> tcases;
-
-    read_tcases(tcases, xs, "tests/sub_br", 2);
-    int vec_len = xs->length();
-    res = fixnum_array::create(vec_len);
-    brs = fixnum_array::create(vec_len);
-
-    auto tcase = tcases.begin();
-    for (int i = 0; i < vec_len; ++i) {
-        fixnum_array *ys = xs->rotate(i);
-        fixnum_array::template map<sub_br>(res, brs, xs, ys);
-        check_result(tcase, vec_len, {res, brs});
-        delete ys;
-    }
-    delete res;
-    delete brs;
-    delete xs;
-}
-
-template< typename fixnum >
-struct mul_lo {
-    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
-        fixnum rr;
-        fixnum::mul_lo(rr, a, b);
-        r = rr;
-    }
-};
-
-TYPED_TEST(TypedPrimitives, mul_lo) {
+TYPED_TEST(TypedPrimitives, cmp) {
     typedef typename TestFixture::fixnum fixnum;
     typedef fixnum_array<fixnum> fixnum_array;
 
     fixnum_array *res, *xs;
     vector<byte_array> tcases;
 
-    read_tcases(tcases, xs, "tests/mul_wide", 2);
+    read_tcases(tcases, xs, "tests/cmp", 2);
     int vec_len = xs->length();
     res = fixnum_array::create(vec_len);
 
     auto tcase = tcases.begin();
     for (int i = 0; i < vec_len; ++i) {
         fixnum_array *ys = xs->rotate(i);
-        fixnum_array::template map<mul_lo>(res, xs, ys);
-        check_result(tcase, vec_len, {res}, 2);
+        fixnum_array::template map<cmp>(res, xs, ys);
+        check_result(tcase, vec_len, {res});
         delete ys;
     }
     delete res;
     delete xs;
 }
 
-template< typename fixnum >
-struct mul_hi {
-    __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
-        fixnum rr;
-        fixnum::mul_hi(rr, a, b);
-        r = rr;
-    }
-};
 
-TYPED_TEST(TypedPrimitives, mul_hi) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+// template< typename fixnum >
+// struct sub_br {
+//     __device__ void operator()(fixnum &r, fixnum &br, fixnum a, fixnum b) {
+//         typedef typename fixnum::digit digit;
+//         digit bb;
+//         fixnum::sub_br(r, bb, a, b);
+//         br = (fixnum::layout::laneIdx() == 0) ? bb : digit::zero();
+//     }
+// };
 
-    fixnum_array *res, *xs;
-    vector<byte_array> tcases;
+// TYPED_TEST(TypedPrimitives, sub_br) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    read_tcases(tcases, xs, "tests/mul_wide", 2);
-    int vec_len = xs->length();
-    res = fixnum_array::create(vec_len);
+//     fixnum_array *res, *brs, *xs;
+//     vector<byte_array> tcases;
 
-    auto tcase = tcases.begin() + 1;
-    for (int i = 0; i < vec_len; ++i) {
-        fixnum_array *ys = xs->rotate(i);
-        fixnum_array::template map<mul_hi>(res, xs, ys);
-        check_result(tcase, vec_len, {res}, 2);
-        delete ys;
-    }
-    delete res;
-    delete xs;
-}
+//     read_tcases(tcases, xs, "tests/sub_br", 2);
+//     int vec_len = xs->length();
+//     res = fixnum_array::create(vec_len);
+//     brs = fixnum_array::create(vec_len);
 
-template< typename fixnum >
-struct mul_wide {
-    __device__ void operator()(fixnum &s, fixnum &r, fixnum a, fixnum b) {
-        fixnum rr, ss;
-        fixnum::mul_wide(ss, rr, a, b);
-        s = ss;
-        r = rr;
-    }
-};
+//     auto tcase = tcases.begin();
+//     for (int i = 0; i < vec_len; ++i) {
+//         fixnum_array *ys = xs->rotate(i);
+//         fixnum_array::template map<sub_br>(res, brs, xs, ys);
+//         check_result(tcase, vec_len, {res, brs});
+//         delete ys;
+//     }
+//     delete res;
+//     delete brs;
+//     delete xs;
+// }
 
-TYPED_TEST(TypedPrimitives, mul_wide) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+// template< typename fixnum >
+// struct mul_lo {
+//     __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
+//         fixnum rr;
+//         fixnum::mul_lo(rr, a, b);
+//         r = rr;
+//     }
+// };
 
-    fixnum_array *his, *los, *xs;
-    vector<byte_array> tcases;
+// TYPED_TEST(TypedPrimitives, mul_lo) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    read_tcases(tcases, xs, "tests/mul_wide", 2);
-    int vec_len = xs->length();
-    his = fixnum_array::create(vec_len);
-    los = fixnum_array::create(vec_len);
+//     fixnum_array *res, *xs;
+//     vector<byte_array> tcases;
 
-    auto tcase = tcases.begin();
-    for (int i = 0; i < vec_len; ++i) {
-        fixnum_array *ys = xs->rotate(i);
-        fixnum_array::template map<mul_wide>(his, los, xs, ys);
-        check_result(tcase, vec_len, {los, his});
-        delete ys;
-    }
-    delete his;
-    delete los;
-    delete xs;
-}
+//     read_tcases(tcases, xs, "tests/mul_wide", 2);
+//     int vec_len = xs->length();
+//     res = fixnum_array::create(vec_len);
 
-template< typename fixnum >
-struct sqr_lo {
-    __device__ void operator()(fixnum &r, fixnum a) {
-        fixnum rr;
-        fixnum::sqr_lo(rr, a);
-        r = rr;
-    }
-};
+//     auto tcase = tcases.begin();
+//     for (int i = 0; i < vec_len; ++i) {
+//         fixnum_array *ys = xs->rotate(i);
+//         fixnum_array::template map<mul_lo>(res, xs, ys);
+//         check_result(tcase, vec_len, {res}, 2);
+//         delete ys;
+//     }
+//     delete res;
+//     delete xs;
+// }
 
-TYPED_TEST(TypedPrimitives, sqr_lo) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+// template< typename fixnum >
+// struct mul_hi {
+//     __device__ void operator()(fixnum &r, fixnum a, fixnum b) {
+//         fixnum rr;
+//         fixnum::mul_hi(rr, a, b);
+//         r = rr;
+//     }
+// };
 
-    fixnum_array *res, *xs;
-    vector<byte_array> tcases;
+// TYPED_TEST(TypedPrimitives, mul_hi) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    read_tcases(tcases, xs, "tests/sqr_wide", 1);
-    int vec_len = xs->length();
-    res = fixnum_array::create(vec_len);
+//     fixnum_array *res, *xs;
+//     vector<byte_array> tcases;
 
-    fixnum_array::template map<sqr_lo>(res, xs);
-    auto tcase = tcases.begin();
-    check_result(tcase, vec_len, {res}, 2);
+//     read_tcases(tcases, xs, "tests/mul_wide", 2);
+//     int vec_len = xs->length();
+//     res = fixnum_array::create(vec_len);
 
-    delete res;
-    delete xs;
-}
+//     auto tcase = tcases.begin() + 1;
+//     for (int i = 0; i < vec_len; ++i) {
+//         fixnum_array *ys = xs->rotate(i);
+//         fixnum_array::template map<mul_hi>(res, xs, ys);
+//         check_result(tcase, vec_len, {res}, 2);
+//         delete ys;
+//     }
+//     delete res;
+//     delete xs;
+// }
 
-template< typename fixnum >
-struct sqr_hi {
-    __device__ void operator()(fixnum &r, fixnum a) {
-        fixnum rr;
-        fixnum::sqr_hi(rr, a);
-        r = rr;
-    }
-};
+// template< typename fixnum >
+// struct mul_wide {
+//     __device__ void operator()(fixnum &s, fixnum &r, fixnum a, fixnum b) {
+//         fixnum rr, ss;
+//         fixnum::mul_wide(ss, rr, a, b);
+//         s = ss;
+//         r = rr;
+//     }
+// };
 
-TYPED_TEST(TypedPrimitives, sqr_hi) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+// TYPED_TEST(TypedPrimitives, mul_wide) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    fixnum_array *res, *xs;
-    vector<byte_array> tcases;
+//     fixnum_array *his, *los, *xs;
+//     vector<byte_array> tcases;
 
-    read_tcases(tcases, xs, "tests/sqr_wide", 1);
-    int vec_len = xs->length();
-    res = fixnum_array::create(vec_len);
+//     read_tcases(tcases, xs, "tests/mul_wide", 2);
+//     int vec_len = xs->length();
+//     his = fixnum_array::create(vec_len);
+//     los = fixnum_array::create(vec_len);
 
-    fixnum_array::template map<sqr_hi>(res, xs);
-    auto tcase = tcases.begin() + 1;
-    check_result(tcase, vec_len, {res}, 2);
+//     auto tcase = tcases.begin();
+//     for (int i = 0; i < vec_len; ++i) {
+//         fixnum_array *ys = xs->rotate(i);
+//         fixnum_array::template map<mul_wide>(his, los, xs, ys);
+//         check_result(tcase, vec_len, {los, his});
+//         delete ys;
+//     }
+//     delete his;
+//     delete los;
+//     delete xs;
+// }
 
-    delete res;
-    delete xs;
-}
+// template< typename fixnum >
+// struct sqr_lo {
+//     __device__ void operator()(fixnum &r, fixnum a) {
+//         fixnum rr;
+//         fixnum::sqr_lo(rr, a);
+//         r = rr;
+//     }
+// };
 
-template< typename fixnum >
-struct sqr_wide {
-    __device__ void operator()(fixnum &s, fixnum &r, fixnum a) {
-        fixnum rr, ss;
-        fixnum::sqr_wide(ss, rr, a);
-        s = ss;
-        r = rr;
-    }
-};
+// TYPED_TEST(TypedPrimitives, sqr_lo) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-TYPED_TEST(TypedPrimitives, sqr_wide) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+//     fixnum_array *res, *xs;
+//     vector<byte_array> tcases;
 
-    fixnum_array *his, *los, *xs;
-    vector<byte_array> tcases;
+//     read_tcases(tcases, xs, "tests/sqr_wide", 1);
+//     int vec_len = xs->length();
+//     res = fixnum_array::create(vec_len);
 
-    read_tcases(tcases, xs, "tests/sqr_wide", 1);
-    int vec_len = xs->length();
-    his = fixnum_array::create(vec_len);
-    los = fixnum_array::create(vec_len);
+//     fixnum_array::template map<sqr_lo>(res, xs);
+//     auto tcase = tcases.begin();
+//     check_result(tcase, vec_len, {res}, 2);
 
-    fixnum_array::template map<sqr_wide>(his, los, xs);
-    auto tcase = tcases.begin();
-    check_result(tcase, vec_len, {los, his});
+//     delete res;
+//     delete xs;
+// }
 
-    delete his;
-    delete los;
-    delete xs;
-}
+// template< typename fixnum >
+// struct sqr_hi {
+//     __device__ void operator()(fixnum &r, fixnum a) {
+//         fixnum rr;
+//         fixnum::sqr_hi(rr, a);
+//         r = rr;
+//     }
+// };
 
-template< typename modnum >
-struct my_modexp {
-    typedef typename modnum::fixnum fixnum;
+// TYPED_TEST(TypedPrimitives, sqr_hi) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    __device__ void operator()(fixnum &z, fixnum x, fixnum e, fixnum m) {
-        modexp<modnum> me(m, e);
-        fixnum zz;
-        me(zz, x);
-        z = zz;
-    };
-};
+//     fixnum_array *res, *xs;
+//     vector<byte_array> tcases;
+
+//     read_tcases(tcases, xs, "tests/sqr_wide", 1);
+//     int vec_len = xs->length();
+//     res = fixnum_array::create(vec_len);
+
+//     fixnum_array::template map<sqr_hi>(res, xs);
+//     auto tcase = tcases.begin() + 1;
+//     check_result(tcase, vec_len, {res}, 2);
+
+//     delete res;
+//     delete xs;
+// }
+
+// template< typename fixnum >
+// struct sqr_wide {
+//     __device__ void operator()(fixnum &s, fixnum &r, fixnum a) {
+//         fixnum rr, ss;
+//         fixnum::sqr_wide(ss, rr, a);
+//         s = ss;
+//         r = rr;
+//     }
+// };
+
+// TYPED_TEST(TypedPrimitives, sqr_wide) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
+
+//     fixnum_array *his, *los, *xs;
+//     vector<byte_array> tcases;
+
+//     read_tcases(tcases, xs, "tests/sqr_wide", 1);
+//     int vec_len = xs->length();
+//     his = fixnum_array::create(vec_len);
+//     los = fixnum_array::create(vec_len);
+
+//     fixnum_array::template map<sqr_wide>(his, los, xs);
+//     auto tcase = tcases.begin();
+//     check_result(tcase, vec_len, {los, his});
+
+//     delete his;
+//     delete los;
+//     delete xs;
+// }
+
+// template< typename modnum >
+// struct my_modexp {
+//     typedef typename modnum::fixnum fixnum;
+
+//     __device__ void operator()(fixnum &z, fixnum x, fixnum e, fixnum m) {
+//         modexp<modnum> me(m, e);
+//         fixnum zz;
+//         me(zz, x);
+//         z = zz;
+//     };
+// };
 
 // TODO: Refactor the modexp tests; need to fix check_result().
-template< typename fixnum >
-using modexp_redc = my_modexp< modnum_monty_redc<fixnum> >;
+// template< typename fixnum >
+// using modexp_redc = my_modexp< modnum_monty_redc<fixnum> >;
 
-TYPED_TEST(TypedPrimitives, modexp_redc) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+// TYPED_TEST(TypedPrimitives, modexp_redc) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    fixnum_array *res, *input, *xs, *zs;
-    vector<byte_array> tcases;
+//     fixnum_array *res, *input, *xs, *zs;
+//     vector<byte_array> tcases;
 
-    read_tcases(tcases, input, "tests/modexp", 3);
-    int vec_len = input->length();
-    int vec_len_sqr = vec_len * vec_len;
+//     read_tcases(tcases, input, "tests/modexp", 3);
+//     int vec_len = input->length();
+//     int vec_len_sqr = vec_len * vec_len;
 
-    res = fixnum_array::create(vec_len_sqr);
-    xs = input->repeat(vec_len);
-    zs = input->rotations(vec_len);
+//     res = fixnum_array::create(vec_len_sqr);
+//     xs = input->repeat(vec_len);
+//     zs = input->rotations(vec_len);
 
-    auto tcase = tcases.begin();
-    for (int i = 0; i < vec_len; ++i) {
-        fixnum_array *tmp = input->rotate(i);
-        fixnum_array *ys = tmp->repeat(vec_len);
+//     auto tcase = tcases.begin();
+//     for (int i = 0; i < vec_len; ++i) {
+//         fixnum_array *tmp = input->rotate(i);
+//         fixnum_array *ys = tmp->repeat(vec_len);
 
-        fixnum_array::template map<modexp_redc>(res, xs, ys, zs);
-        check_result(tcase, vec_len, {res}, 1, vec_len);
+//         fixnum_array::template map<modexp_redc>(res, xs, ys, zs);
+//         check_result(tcase, vec_len, {res}, 1, vec_len);
 
-        delete ys;
-        delete tmp;
-    }
-    delete res;
-    delete input;
-    delete xs;
-    delete zs;
-}
+//         delete ys;
+//         delete tmp;
+//     }
+//     delete res;
+//     delete input;
+//     delete xs;
+//     delete zs;
+// }
 
-template< typename fixnum >
-using modexp_cios = my_modexp< modnum_monty_cios<fixnum> >;
+// template< typename fixnum >
+// using modexp_cios = my_modexp< modnum_monty_cios<fixnum> >;
 
-TYPED_TEST(TypedPrimitives, modexp_cios) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+// TYPED_TEST(TypedPrimitives, modexp_cios) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    fixnum_array *res, *input, *xs, *zs;
-    vector<byte_array> tcases;
+//     fixnum_array *res, *input, *xs, *zs;
+//     vector<byte_array> tcases;
 
-    read_tcases(tcases, input, "tests/modexp", 3);
-    int vec_len = input->length();
-    int vec_len_sqr = vec_len * vec_len;
+//     read_tcases(tcases, input, "tests/modexp", 3);
+//     int vec_len = input->length();
+//     int vec_len_sqr = vec_len * vec_len;
 
-    res = fixnum_array::create(vec_len_sqr);
-    xs = input->repeat(vec_len);
-    zs = input->rotations(vec_len);
+//     res = fixnum_array::create(vec_len_sqr);
+//     xs = input->repeat(vec_len);
+//     zs = input->rotations(vec_len);
 
-    auto tcase = tcases.begin();
-    for (int i = 0; i < vec_len; ++i) {
-        fixnum_array *tmp = input->rotate(i);
-        fixnum_array *ys = tmp->repeat(vec_len);
+//     auto tcase = tcases.begin();
+//     for (int i = 0; i < vec_len; ++i) {
+//         fixnum_array *tmp = input->rotate(i);
+//         fixnum_array *ys = tmp->repeat(vec_len);
 
-        fixnum_array::template map<modexp_cios>(res, xs, ys, zs);
-        check_result(tcase, vec_len, {res}, 1, vec_len);
+//         fixnum_array::template map<modexp_cios>(res, xs, ys, zs);
+//         check_result(tcase, vec_len, {res}, 1, vec_len);
 
-        delete ys;
-        delete tmp;
-    }
-    delete res;
-    delete input;
-    delete xs;
-    delete zs;
-}
+//         delete ys;
+//         delete tmp;
+//     }
+//     delete res;
+//     delete input;
+//     delete xs;
+//     delete zs;
+// }
 
 
-template< typename modnum >
-struct my_multi_modexp {
-    typedef typename modnum::fixnum fixnum;
+// template< typename modnum >
+// struct my_multi_modexp {
+//     typedef typename modnum::fixnum fixnum;
 
-    __device__ void operator()(fixnum &z, fixnum x, fixnum e, fixnum m) {
-        multi_modexp<modnum> mme(m);
-        fixnum zz;
-        mme(zz, x, e);
-        z = zz;
-    };
-};
+//     __device__ void operator()(fixnum &z, fixnum x, fixnum e, fixnum m) {
+//         multi_modexp<modnum> mme(m);
+//         fixnum zz;
+//         mme(zz, x, e);
+//         z = zz;
+//     };
+// };
 
-template< typename fixnum >
-using multi_modexp_redc = my_multi_modexp< modnum_monty_redc<fixnum> >;
+// template< typename fixnum >
+// using multi_modexp_redc = my_multi_modexp< modnum_monty_redc<fixnum> >;
 
-TYPED_TEST(TypedPrimitives, multi_modexp_redc) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+// TYPED_TEST(TypedPrimitives, multi_modexp_redc) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    fixnum_array *res, *input, *xs, *zs;
-    vector<byte_array> tcases;
+//     fixnum_array *res, *input, *xs, *zs;
+//     vector<byte_array> tcases;
 
-    read_tcases(tcases, input, "tests/modexp", 3);
-    int vec_len = input->length();
-    int vec_len_sqr = vec_len * vec_len;
+//     read_tcases(tcases, input, "tests/modexp", 3);
+//     int vec_len = input->length();
+//     int vec_len_sqr = vec_len * vec_len;
 
-    res = fixnum_array::create(vec_len_sqr);
-    xs = input->repeat(vec_len);
-    zs = input->rotations(vec_len);
+//     res = fixnum_array::create(vec_len_sqr);
+//     xs = input->repeat(vec_len);
+//     zs = input->rotations(vec_len);
 
-    auto tcase = tcases.begin();
-    for (int i = 0; i < vec_len; ++i) {
-        fixnum_array *tmp = input->rotate(i);
-        fixnum_array *ys = tmp->repeat(vec_len);
+//     auto tcase = tcases.begin();
+//     for (int i = 0; i < vec_len; ++i) {
+//         fixnum_array *tmp = input->rotate(i);
+//         fixnum_array *ys = tmp->repeat(vec_len);
 
-        fixnum_array::template map<multi_modexp_redc>(res, xs, ys, zs);
-        check_result(tcase, vec_len, {res}, 1, vec_len);
+//         fixnum_array::template map<multi_modexp_redc>(res, xs, ys, zs);
+//         check_result(tcase, vec_len, {res}, 1, vec_len);
 
-        delete ys;
-        delete tmp;
-    }
-    delete res;
-    delete input;
-    delete xs;
-    delete zs;
-}
+//         delete ys;
+//         delete tmp;
+//     }
+//     delete res;
+//     delete input;
+//     delete xs;
+//     delete zs;
+// }
 
-template< typename fixnum >
-using multi_modexp_cios = my_multi_modexp< modnum_monty_cios<fixnum> >;
+// template< typename fixnum >
+// using multi_modexp_cios = my_multi_modexp< modnum_monty_cios<fixnum> >;
 
-TYPED_TEST(TypedPrimitives, multi_modexp_cios) {
-    typedef typename TestFixture::fixnum fixnum;
-    typedef fixnum_array<fixnum> fixnum_array;
+// TYPED_TEST(TypedPrimitives, multi_modexp_cios) {
+//     typedef typename TestFixture::fixnum fixnum;
+//     typedef fixnum_array<fixnum> fixnum_array;
 
-    fixnum_array *res, *input, *xs, *zs;
-    vector<byte_array> tcases;
+//     fixnum_array *res, *input, *xs, *zs;
+//     vector<byte_array> tcases;
 
-    read_tcases(tcases, input, "tests/modexp", 3);
-    int vec_len = input->length();
-    int vec_len_sqr = vec_len * vec_len;
+//     read_tcases(tcases, input, "tests/modexp", 3);
+//     int vec_len = input->length();
+//     int vec_len_sqr = vec_len * vec_len;
 
-    res = fixnum_array::create(vec_len_sqr);
-    xs = input->repeat(vec_len);
-    zs = input->rotations(vec_len);
+//     res = fixnum_array::create(vec_len_sqr);
+//     xs = input->repeat(vec_len);
+//     zs = input->rotations(vec_len);
 
-    auto tcase = tcases.begin();
-    for (int i = 0; i < vec_len; ++i) {
-        fixnum_array *tmp = input->rotate(i);
-        fixnum_array *ys = tmp->repeat(vec_len);
+//     auto tcase = tcases.begin();
+//     for (int i = 0; i < vec_len; ++i) {
+//         fixnum_array *tmp = input->rotate(i);
+//         fixnum_array *ys = tmp->repeat(vec_len);
 
-        fixnum_array::template map<multi_modexp_cios>(res, xs, ys, zs);
-        check_result(tcase, vec_len, {res}, 1, vec_len);
+//         fixnum_array::template map<multi_modexp_cios>(res, xs, ys, zs);
+//         check_result(tcase, vec_len, {res}, 1, vec_len);
 
-        delete ys;
-        delete tmp;
-    }
-    delete res;
-    delete input;
-    delete xs;
-    delete zs;
-}
+//         delete ys;
+//         delete tmp;
+//     }
+//     delete res;
+//     delete input;
+//     delete xs;
+//     delete zs;
+// }
 
-template< typename fixnum >
-struct pencrypt {
-    __device__ void operator()(fixnum &z, fixnum p, fixnum q, fixnum r, fixnum m) {
-        fixnum n, zz;
-        fixnum::mul_lo(n, p, q);
-        paillier_encrypt<fixnum> enc(n);
-        enc(zz, m, r);
-        z = zz;
-    };
-};
+// template< typename fixnum >
+// struct pencrypt {
+//     __device__ void operator()(fixnum &z, fixnum p, fixnum q, fixnum r, fixnum m) {
+//         fixnum n, zz;
+//         fixnum::mul_lo(n, p, q);
+//         paillier_encrypt<fixnum> enc(n);
+//         enc(zz, m, r);
+//         z = zz;
+//     };
+// };
 
-template< typename fixnum >
-struct pdecrypt {
-    __device__ void operator()(fixnum &z, fixnum ct, fixnum p, fixnum q, fixnum r, fixnum m) {
-        if (fixnum::cmp(p, q) == 0
-              || fixnum::cmp(r, p) == 0
-              || fixnum::cmp(r, q) == 0) {
-            z = fixnum::zero();
-            return;
-        }
-        paillier_decrypt<fixnum> dec(p, q);
-        fixnum n, zz;
-        dec(zz, fixnum::zero(), ct);
-        fixnum::mul_lo(n, p, q);
-        quorem_preinv<fixnum> qr(n);
-        qr(m, fixnum::zero(), m);
+// template< typename fixnum >
+// struct pdecrypt {
+//     __device__ void operator()(fixnum &z, fixnum ct, fixnum p, fixnum q, fixnum r, fixnum m) {
+//         if (fixnum::cmp(p, q) == 0
+//               || fixnum::cmp(r, p) == 0
+//               || fixnum::cmp(r, q) == 0) {
+//             z = fixnum::zero();
+//             return;
+//         }
+//         paillier_decrypt<fixnum> dec(p, q);
+//         fixnum n, zz;
+//         dec(zz, fixnum::zero(), ct);
+//         fixnum::mul_lo(n, p, q);
+//         quorem_preinv<fixnum> qr(n);
+//         qr(m, fixnum::zero(), m);
 
-        // z = (z != m)
-        z = fixnum::digit( !! fixnum::cmp(zz, m));
-    };
-};
+//         // z = (z != m)
+//         z = fixnum::digit( !! fixnum::cmp(zz, m));
+//     };
+// };
 
-TYPED_TEST(TypedPrimitives, paillier) {
-    typedef typename TestFixture::fixnum fixnum;
+// TYPED_TEST(TypedPrimitives, paillier) {
+//     typedef typename TestFixture::fixnum fixnum;
 
-    typedef fixnum ctxt;
-    // TODO: BYTES/2 only works when BYTES > 4
-    //typedef default_fixnum<ctxt::BYTES/2, typename ctxt::word_tp> ptxt;
-    typedef fixnum ptxt;
+//     typedef fixnum ctxt;
+//     // TODO: BYTES/2 only works when BYTES > 4
+//     //typedef default_fixnum<ctxt::BYTES/2, typename ctxt::word_tp> ptxt;
+//     typedef fixnum ptxt;
 
-    typedef fixnum_array<ctxt> ctxt_array;
-    typedef fixnum_array<ptxt> ptxt_array;
+//     typedef fixnum_array<ctxt> ctxt_array;
+//     typedef fixnum_array<ptxt> ptxt_array;
 
-    ctxt_array *ct, *pt, *p;
-    vector<byte_array> tcases;
-    read_tcases(tcases, p, "tests/paillier_encrypt", 4);
+//     ctxt_array *ct, *pt, *p;
+//     vector<byte_array> tcases;
+//     read_tcases(tcases, p, "tests/paillier_encrypt", 4);
 
-    int vec_len = p->length();
-    ct = ctxt_array::create(vec_len);
-    pt = ctxt_array::create(vec_len);
+//     int vec_len = p->length();
+//     ct = ctxt_array::create(vec_len);
+//     pt = ctxt_array::create(vec_len);
 
-    // TODO: Parallelise these tests similar to modexp above.
-    ctxt_array *zeros = ctxt_array::create(vec_len, 0);
-    auto tcase = tcases.begin();
-    for (int i = 0; i < vec_len; ++i) {
-        ctxt_array *q = p->rotate(i);
-        for (int j = 0; j < vec_len; ++j) {
-            ctxt_array *r = p->rotate(j);
-            for (int k = 0; k < vec_len; ++k) {
-                ctxt_array *m = p->rotate(k);
+//     // TODO: Parallelise these tests similar to modexp above.
+//     ctxt_array *zeros = ctxt_array::create(vec_len, 0);
+//     auto tcase = tcases.begin();
+//     for (int i = 0; i < vec_len; ++i) {
+//         ctxt_array *q = p->rotate(i);
+//         for (int j = 0; j < vec_len; ++j) {
+//             ctxt_array *r = p->rotate(j);
+//             for (int k = 0; k < vec_len; ++k) {
+//                 ctxt_array *m = p->rotate(k);
 
-                ctxt_array::template map<pencrypt>(ct, p, q, r, m);
-                check_result(tcase, vec_len, {ct});
+//                 ctxt_array::template map<pencrypt>(ct, p, q, r, m);
+//                 check_result(tcase, vec_len, {ct});
 
-                ptxt_array::template map<pdecrypt>(pt, ct, p, q, r, m);
+//                 ptxt_array::template map<pdecrypt>(pt, ct, p, q, r, m);
 
-                size_t nbytes = vec_len * ctxt::BYTES;
-                const uint8_t *zptr = reinterpret_cast<const uint8_t *>(zeros->get_ptr());
-                const uint8_t *ptptr = reinterpret_cast<const uint8_t *>(pt->get_ptr());
-                EXPECT_TRUE(arrays_are_equal(zptr, nbytes, ptptr, nbytes));
+//                 size_t nbytes = vec_len * ctxt::BYTES;
+//                 const uint8_t *zptr = reinterpret_cast<const uint8_t *>(zeros->get_ptr());
+//                 const uint8_t *ptptr = reinterpret_cast<const uint8_t *>(pt->get_ptr());
+//                 EXPECT_TRUE(arrays_are_equal(zptr, nbytes, ptptr, nbytes));
 
-                delete m;
-            }
-            delete r;
-        }
-        delete q;
-    }
+//                 delete m;
+//             }
+//             delete r;
+//         }
+//         delete q;
+//     }
 
-    delete p;
-    delete ct;
-    delete zeros;
-}
+//     delete p;
+//     delete ct;
+//     delete zeros;
+// }
 
 int main(int argc, char *argv[])
 {

@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
     long m = 1;
     if (argc > 1)
         m = atol(argv[1]);
-    m = std::max(m, 1000L);
+    m = std::max(m, 100000L);
 
     bench_func<add>("add", m);
     puts("");
